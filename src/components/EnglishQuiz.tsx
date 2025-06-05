@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import ChatTutor from './ChatTutor'
 
 interface Question {
   text: string
@@ -276,6 +277,16 @@ export default function EnglishQuiz() {
             <p className="mt-2 text-gray-700">
               {questions[currentQuestionIndex].explanation}
             </p>
+
+            {selectedAnswer !== questions[currentQuestionIndex].correctAnswer && (
+              <ChatTutor
+                question={questions[currentQuestionIndex].text}
+                selectedAnswer={selectedAnswer}
+                correctAnswer={questions[currentQuestionIndex].correctAnswer}
+                explanation={questions[currentQuestionIndex].explanation}
+                themeContext={theme}
+              />
+            )}
           </div>
         )}
 
