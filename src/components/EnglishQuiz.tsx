@@ -61,7 +61,9 @@ export default function EnglishQuiz() {
       })
 
       const data = await response.json()
-      const parsedData = JSON.parse(data.response)
+      // Remove markdown code block syntax before parsing
+      const cleanJson = data.response.replace(/^```json\n|\n```$/g, '')
+      const parsedData = JSON.parse(cleanJson)
       
       setGeneratedText(parsedData.text)
       setQuestions(parsedData.questions)
