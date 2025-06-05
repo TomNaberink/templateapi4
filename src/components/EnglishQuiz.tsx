@@ -10,6 +10,7 @@ interface Question {
 }
 
 export default function EnglishQuiz() {
+  const [difficulty, setDifficulty] = useState('')
   const [theme, setTheme] = useState('')
   const [isThemeSelected, setIsThemeSelected] = useState(false)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
@@ -19,6 +20,12 @@ export default function EnglishQuiz() {
   const [generatedText, setGeneratedText] = useState('')
   const [questions, setQuestions] = useState<Question[]>([])
   const [isLoading, setIsLoading] = useState(false)
+
+  const difficulties = [
+    { id: 'easy', name: 'Easy', emoji: '😊' },
+    { id: 'medium', name: 'Medium', emoji: '🤔' },
+    { id: 'hard', name: 'Hard', emoji: '🧐' }
+  ]
 
   const themes = [
     "Sports",
@@ -31,9 +38,19 @@ export default function EnglishQuiz() {
     "Gaming"
   ]
 
+  const handleDifficultySelect = (selectedDifficulty: string) => {
+    setDifficulty(selectedDifficulty)
+  }
+
   const handleThemeSelect = async (selectedTheme: string) => {
     setIsLoading(true)
     setTheme(selectedTheme)
+
+    const difficultyLevels = {
+      easy: "simple conjunctions like 'and', 'but', 'or', 'so'",
+      medium: "intermediate conjunctions like 'although', 'unless', 'since', 'while'",
+      hard: "advanced conjunctions like 'nevertheless', 'whereas', 'moreover', 'consequently'"
+    }
 
     try {
       const response = await fetch('/api/chat', {
@@ -42,8 +59,8 @@ export default function EnglishQuiz() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: `Create an engaging text about ${selectedTheme} for HAVO 4 students (age 15-16). 
-          The text should be 5 paragraphs long and use various conjunctions.
+          message: `Create an engaging ${difficulty} level text about ${selectedTheme} for HAVO 4 students (age 15-16). 
+          The text should be 5 paragraphs long and specifically use ${difficultyLevels[difficulty as keyof typeof difficultyLevels]}.
           Then create 5 multiple choice questions about conjunctions used in the text.
           Format the response as JSON with this structure:
           {
@@ -61,7 +78,6 @@ export default function EnglishQuiz() {
       })
 
       const data = await response.json()
-      // Remove markdown code block syntax before parsing
       const cleanJson = data.response.replace(/^```json\n|\n```$/g, '')
       const parsedData = JSON.parse(cleanJson)
       
@@ -91,6 +107,7 @@ export default function EnglishQuiz() {
   }
 
   const resetQuiz = () => {
+    setDifficulty('')
     setIsThemeSelected(false)
     setCurrentQuestionIndex(0)
     setSelectedAnswer('')
@@ -111,10 +128,38 @@ export default function EnglishQuiz() {
     )
   }
 
+  if (!difficulty) {
+    return (
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h2 className="text-2xl font-bold text-purple-800 mb-6">Choose Your Difficulty! 🎯</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {difficulties.map((d) => (
+            <button
+              key={d.id}
+              onClick={() => handleDifficultySelect(d.id)}
+              className="p-6 text-center rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors border border-purple-200 hover:border-purple-300"
+            >
+              <div className="text-3xl mb-2">{d.emoji}</div>
+              <span className="text-lg font-medium text-purple-700">{d.name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   if (!isThemeSelected) {
     return (
       <div className="bg-white rounded-xl shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-purple-800 mb-6">Choose Your Theme! 🎯</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-purple-800">Choose Your Theme! 🎯</h2>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-purple-600">Difficulty:</span>
+            <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+              {difficulties.find(d => d.id === difficulty)?.name}
+            </span>
+          </div>
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {themes.map((t) => (
             <button
@@ -141,7 +186,7 @@ export default function EnglishQuiz() {
           onClick={resetQuiz}
           className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
         >
-          Try Another Theme
+          Try Another Quiz
         </button>
       </div>
     )
@@ -149,6 +194,21 @@ export default function EnglishQuiz() {
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6">
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-purple-600">Theme:</span>
+          <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+            {theme}
+          </span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-purple-600">Difficulty:</span>
+          <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+            {difficulties.find(d => d.id === difficulty)?.name}
+          </span>
+        </div>
+      </div>
+
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-purple-800 mb-4">
           {theme} Text
